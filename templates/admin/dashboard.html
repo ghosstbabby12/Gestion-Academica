@@ -3,7 +3,7 @@
 {% block title %}Panel de Administración - Estudify{% endblock %}
 
 {% block content %}
-<h2 style="margin-bottom: 2rem; color: #2c3e50;">📊 Panel de Administración</h2>
+<h2>📊 Panel de Administración</h2>
 
 <div class="stats-grid">
     <div class="stat-card">
@@ -32,8 +32,31 @@
     </div>
 </div>
 
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="text-align: center;">
+        <h3 style="margin-bottom: 1rem;">👥 Usuarios</h3>
+        <p style="color: #718096; margin-bottom: 1.5rem;">Gestiona estudiantes y docentes</p>
+        <a href="{% url 'admin_usuarios_lista' %}" class="btn btn-primary" style="margin-right: 0.5rem;">Ver Usuarios</a>
+        <a href="{% url 'admin_usuario_crear' %}" class="btn btn-success">➕ Crear Usuario</a>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <h3 style="margin-bottom: 1rem;">🎓 Cursos</h3>
+        <p style="color: #718096; margin-bottom: 1.5rem;">Administra los cursos del sistema</p>
+        <a href="{% url 'admin_cursos_lista' %}" class="btn btn-primary" style="margin-right: 0.5rem;">Ver Cursos</a>
+        <a href="{% url 'admin_curso_crear' %}" class="btn btn-success">➕ Crear Curso</a>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <h3 style="margin-bottom: 1rem;">📚 Materias</h3>
+        <p style="color: #718096; margin-bottom: 1.5rem;">Gestiona las materias y asigna docentes</p>
+        <a href="{% url 'admin_materias_lista' %}" class="btn btn-primary" style="margin-right: 0.5rem;">Ver Materias</a>
+        <a href="{% url 'admin_materia_crear' %}" class="btn btn-success">➕ Crear Materia</a>
+    </div>
+</div>
+
 <div class="card">
-    <h3 class="card-title">🎓 Cursos con Más Estudiantes</h3>
+    <h3>🎓 Cursos con Más Estudiantes</h3>
     <table>
         <thead>
             <tr>
@@ -67,7 +90,7 @@
 </div>
 
 <div class="card">
-    <h3 class="card-title">👥 Estudiantes Recientes</h3>
+    <h3>👥 Estudiantes Recientes</h3>
     <table>
         <thead>
             <tr>
