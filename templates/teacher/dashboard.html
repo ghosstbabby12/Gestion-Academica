@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Docente{% endblock %}
+{% block content %}
+<h2>🎓 Panel del Docente</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ materias.count }}</div>
+        <div class="stat-label">Materias Asignadas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_estudiantes }}</div>
+        <div class="stat-label">Estudiantes Totales</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_calificaciones }}</div>
+        <div class="stat-label">Calificaciones Registradas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ promedio_general }}</div>
+        <div class="stat-label">Promedio General</div>
+    </div>
+</div>
+<div class="card">
+    <h3>📚 Mis Materias</h3>
+    <table>
+        <thead><tr><th>Materia</th><th>Código</th><th>Curso</th><th>Créditos</th></tr></thead>
+        <tbody>
+            {% for materia in materias %}
+            <tr>
+                <td><strong>{{ materia.nombre }}</strong></td>
+                <td>{{ materia.codigo }}</td>
+                <td>{{ materia.curso.nombre }}</td>
+                <td>{{ materia.creditos }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center;">No tienes materias asignadas</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

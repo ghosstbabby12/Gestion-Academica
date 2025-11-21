@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Administrador - Estudify{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 2rem; color: #2c3e50;">📊 Panel de Administración</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_estudiantes }}</div>
+        <div class="stat-label">Estudiantes Activos</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_docentes }}</div>
+        <div class="stat-label">Docentes Activos</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_cursos }}</div>
+        <div class="stat-label">Cursos Activos</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_materias }}</div>
+        <div class="stat-label">Materias Activas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ promedio_general }}</div>
+        <div class="stat-label">Promedio General</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ porcentaje_asistencia }}%</div>
+        <div class="stat-label">Asistencia Mensual</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">🎓 Cursos con Más Estudiantes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Año Escolar</th>
+                <th>Estudiantes</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for curso in cursos_populares %}
+            <tr>
+                <td><strong>{{ curso.nombre }}</strong></td>
+                <td>{{ curso.año_escolar }}</td>
+                <td>{{ curso.num_estudiantes }}</td>
+                <td>
+                    {% if curso.activo %}
+                    <span class="badge badge-success">Activo</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactivo</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #7f8c8d;">No hay cursos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 class="card-title">👥 Estudiantes Recientes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Email</th>
+                <th>Fecha de Registro</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for estudiante in estudiantes_recientes %}
+            <tr>
+                <td><strong>{{ estudiante.username }}</strong></td>
+                <td>{{ estudiante.get_full_name|default:"-" }}</td>
+                <td>{{ estudiante.email|default:"-" }}</td>
+                <td>{{ estudiante.date_joined|date:"d/m/Y" }}</td>
+                <td>
+                    {% if estudiante.is_active %}
+                    <span class="badge badge-success">Activo</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactivo</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #7f8c8d;">No hay estudiantes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 class="card-title">⚙️ Acciones Rápidas</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="/admin/accounts/customuser/add/" class="btn btn-primary">➕ Crear Usuario</a>
+        <a href="/admin/core/curso/" class="btn btn-primary">📚 Gestionar Cursos</a>
+        <a href="/admin/core/materia/" class="btn btn-primary">📖 Gestionar Materias</a>
+        <a href="/admin/core/calificacion/" class="btn btn-primary">📝 Ver Calificaciones</a>
+        <a href="/admin/core/asistencia/" class="btn btn-primary">📅 Ver Asistencias</a>
+        <a href="/admin/" class="btn btn-success">🔧 Panel de Administración</a>
+    </div>
+</div>
+{% endblock %}

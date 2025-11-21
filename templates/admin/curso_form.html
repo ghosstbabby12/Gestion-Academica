@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Editar{% else %}Crear{% endif %} Curso{% endblock %}
+{% block content %}
+<h2>{% if edit_mode %}Editar{% else %}Crear{% endif %} Curso</h2>
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Nombre:</label>
+            <input type="text" name="nombre" value="{{ curso.nombre|default:'' }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Descripción:</label>
+            <textarea name="descripcion" style="width: 100%; padding: 0.5rem; min-height: 100px;">{{ curso.descripcion|default:'' }}</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Año Escolar (ej: 2024-2025):</label>
+            <input type="text" name="año_escolar" value="{{ curso.año_escolar|default:'' }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label><input type="checkbox" name="activo" {% if edit_mode %}{% if curso.activo %}checked{% endif %}{% else %}checked{% endif %}> Activo</label>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'admin_cursos_lista' %}" class="btn btn-danger">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

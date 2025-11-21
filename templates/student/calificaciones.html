@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Mis Calificaciones{% endblock %}
+{% block content %}
+<h2>📝 Mis Calificaciones</h2>
+<a href="{% url 'student_exportar' %}" class="btn btn-success" style="margin-bottom: 1rem;">📥 Exportar a Excel</a>
+{% for materia_id, data in calificaciones_por_materia.items %}
+<div class="card">
+    <h3>{{ data.materia.nombre }} - {{ data.materia.curso.nombre }}</h3>
+    <p><strong>Promedio:</strong> <span style="font-size: 1.5rem; color: #3498db;">{{ data.promedio }}</span></p>
+    <table>
+        <thead><tr><th>Periodo</th><th>Nota</th><th>Estado</th><th>Observaciones</th></tr></thead>
+        <tbody>
+            {% for cal in data.calificaciones %}
+            <tr>
+                <td>{{ cal.get_periodo_display }}</td>
+                <td><strong>{{ cal.nota }}</strong></td>
+                <td>{% if cal.aprobado %}<span class="badge badge-success">Aprobado</span>{% else %}<span class="badge badge-danger">Reprobado</span>{% endif %}</td>
+                <td>{{ cal.observaciones|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<p>No tienes calificaciones registradas</p>
+{% endfor %}
+{% endblock %}

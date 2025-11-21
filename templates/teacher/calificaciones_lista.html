@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Calificaciones{% endblock %}
+{% block content %}
+<h2>📝 Gestión de Calificaciones</h2>
+<div style="margin: 1.5rem 0;">
+    <a href="{% url 'teacher_calificacion_crear' %}" class="btn btn-success">➕ Registrar Calificación</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Estudiante</th><th>Materia</th><th>Periodo</th><th>Nota</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for cal in calificaciones %}
+            <tr>
+                <td>{{ cal.estudiante.get_full_name|default:cal.estudiante.username }}</td>
+                <td>{{ cal.materia.nombre }}</td>
+                <td>{{ cal.get_periodo_display }}</td>
+                <td><strong>{{ cal.nota }}</strong></td>
+                <td>{% if cal.aprobado %}<span class="badge badge-success">Aprobado</span>{% else %}<span class="badge badge-danger">Reprobado</span>{% endif %}</td>
+                <td>{{ cal.fecha_registro|date:"d/m/Y" }}</td>
+                <td>
+                    <a href="{% url 'teacher_calificacion_editar' cal.id %}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Editar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align: center;">No hay calificaciones registradas</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

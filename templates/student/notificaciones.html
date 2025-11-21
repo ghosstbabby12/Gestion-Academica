@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Notificaciones{% endblock %}
+{% block content %}
+<h2>🔔 Mis Notificaciones</h2>
+<div class="card">
+    {% for notif in notificaciones %}
+    <div class="notification" style="{% if notif.leida %}opacity: 0.6;{% endif %}">
+        <div class="notification-title">{{ notif.titulo }}</div>
+        <div>{{ notif.mensaje }}</div>
+        <small style="color: #7f8c8d;">{{ notif.creada_en|date:"d/m/Y H:i" }}</small>
+        {% if not notif.leida %}
+        <a href="{% url 'student_marcar_leida' notif.id %}" style="margin-left: 1rem; color: #3498db;">Marcar como leída</a>
+        {% else %}
+        <span style="margin-left: 1rem; color: #95a5a6;">✓ Leída</span>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: #7f8c8d;">No tienes notificaciones</p>
+    {% endfor %}
+</div>
+{% endblock %}

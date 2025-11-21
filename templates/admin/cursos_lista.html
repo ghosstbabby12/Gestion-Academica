@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Cursos{% endblock %}
+{% block content %}
+<h2>📚 Gestión de Cursos</h2>
+<div style="margin: 1.5rem 0;">
+    <a href="{% url 'admin_curso_crear' %}" class="btn btn-success">➕ Crear Curso</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Nombre</th><th>Año Escolar</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for curso in cursos %}
+            <tr>
+                <td><strong>{{ curso.nombre }}</strong></td>
+                <td>{{ curso.año_escolar }}</td>
+                <td>{% if curso.activo %}<span class="badge badge-success">Activo</span>{% else %}<span class="badge badge-danger">Inactivo</span>{% endif %}</td>
+                <td>
+                    <a href="{% url 'admin_curso_editar' curso.id %}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Editar</a>
+                    <a href="{% url 'admin_curso_eliminar' curso.id %}" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

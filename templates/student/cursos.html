@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Mis Cursos{% endblock %}
+{% block content %}
+<h2>🎓 Mis Cursos</h2>
+{% for data in cursos_data %}
+<div class="card">
+    <h3>{{ data.matricula.curso.nombre }} - {{ data.matricula.curso.año_escolar }}</h3>
+    <p><strong>Fecha de Matrícula:</strong> {{ data.matricula.fecha_matricula|date:"d/m/Y" }}</p>
+    <p><strong>Estado:</strong> {% if data.matricula.activa %}<span class="badge badge-success">Activa</span>{% else %}<span class="badge badge-danger">Inactiva</span>{% endif %}</p>
+    <h4>Materias:</h4>
+    <ul>
+        {% for materia in data.materias %}
+        <li>{{ materia.nombre }} - {{ materia.creditos }} créditos ({{ materia.docente.get_full_name|default:materia.docente.username|default:"Sin docente" }})</li>
+        {% endfor %}
+    </ul>
+</div>
+{% empty %}
+<p>No estás matriculado en ningún curso</p>
+{% endfor %}
+{% endblock %}

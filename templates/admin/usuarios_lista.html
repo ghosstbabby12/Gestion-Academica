@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Usuarios{% endblock %}
+{% block content %}
+<h2>👥 Gestión de Usuarios</h2>
+<div style="margin: 1.5rem 0;">
+    <a href="{% url 'admin_usuario_crear' %}" class="btn btn-success">➕ Crear Usuario</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Username</th><th>Nombre</th><th>Email</th><th>Role</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.username }}</td>
+                <td>{{ usuario.get_full_name|default:"-" }}</td>
+                <td>{{ usuario.email|default:"-" }}</td>
+                <td><span class="badge badge-info">{{ usuario.get_role_display }}</span></td>
+                <td>{% if usuario.is_active %}<span class="badge badge-success">Activo</span>{% else %}<span class="badge badge-danger">Inactivo</span>{% endif %}</td>
+                <td>
+                    <a href="{% url 'admin_usuario_editar' usuario.id %}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

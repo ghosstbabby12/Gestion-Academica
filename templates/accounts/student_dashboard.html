@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Estudiante - Estudify{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 2rem; color: #2c3e50;">📖 Mi Panel Estudiantil</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ promedio }}</div>
+        <div class="stat-label">Promedio General</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ matriculas.count }}</div>
+        <div class="stat-label">Cursos Matriculados</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ porcentaje_asistencia }}%</div>
+        <div class="stat-label">Asistencia del Mes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ notificaciones.count }}</div>
+        <div class="stat-label">Notificaciones Nuevas</div>
+    </div>
+</div>
+
+{% if notificaciones %}
+<div class="card">
+    <h3 class="card-title">🔔 Notificaciones</h3>
+    {% for notif in notificaciones %}
+    <div class="notification">
+        <div class="notification-title">{{ notif.titulo }}</div>
+        <div>{{ notif.mensaje }}</div>
+        <small style="color: #7f8c8d;">{{ notif.creada_en|date:"d/m/Y H:i" }}</small>
+        <a href="{% url 'marcar_notificacion_leida' notif.id %}" style="margin-left: 1rem; color: #3498db; text-decoration: none;">Marcar como leída</a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+    <h3 class="card-title">🎓 Mis Cursos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Año Escolar</th>
+                <th>Fecha de Matrícula</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for matricula in matriculas %}
+            <tr>
+                <td><strong>{{ matricula.curso.nombre }}</strong></td>
+                <td>{{ matricula.curso.año_escolar }}</td>
+                <td>{{ matricula.fecha_matricula|date:"d/m/Y" }}</td>
+                <td>
+                    {% if matricula.activa %}
+                    <span class="badge badge-success">Activa</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactiva</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #7f8c8d;">No estás matriculado en ningún curso</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 class="card-title" style="margin: 0;">📝 Mis Calificaciones</h3>
+        <a href="{% url 'exportar_calificaciones' %}" class="btn btn-success">📥 Exportar a Excel</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Materia</th>
+                <th>Curso</th>
+                <th>Periodo</th>
+                <th>Nota</th>
+                <th>Estado</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cal in calificaciones %}
+            <tr>
+                <td><strong>{{ cal.materia.nombre }}</strong></td>
+                <td>{{ cal.materia.curso.nombre }}</td>
+                <td>{{ cal.get_periodo_display }}</td>
+                <td><strong style="{% if cal.aprobado %}color: #27ae60{% else %}color: #e74c3c{% endif %}">{{ cal.nota }}</strong></td>
+                <td>
+                    {% if cal.aprobado %}
+                    <span class="badge badge-success">✓ Aprobado</span>
+                    {% else %}
+                    <span class="badge badge-danger">✗ Reprobado</span>
+                    {% endif %}
+                </td>
+                <td>{{ cal.observaciones|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #7f8c8d;">No tienes calificaciones registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

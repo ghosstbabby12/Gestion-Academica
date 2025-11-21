@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Estadísticas{% endblock %}
+{% block content %}
+<h2>📊 Estadísticas por Materia</h2>
+{% for stat in stats %}
+<div class="card">
+    <h3>{{ stat.materia.nombre }} - {{ stat.materia.curso.nombre }}</h3>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stat.total_calificaciones }}</div>
+            <div class="stat-label">Total Calificaciones</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stat.promedio }}</div>
+            <div class="stat-label">Promedio</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stat.aprobados }}</div>
+            <div class="stat-label">Aprobados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stat.reprobados }}</div>
+            <div class="stat-label">Reprobados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stat.porcentaje_asistencia }}%</div>
+            <div class="stat-label">Asistencia</div>
+        </div>
+    </div>
+    <a href="{% url 'teacher_generar_reporte' %}?materia={{ stat.materia.id }}" class="btn btn-success">📥 Descargar Reporte Excel</a>
+</div>
+{% empty %}
+<p>No tienes materias asignadas</p>
+{% endfor %}
+{% endblock %}

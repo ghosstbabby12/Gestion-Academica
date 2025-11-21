@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Editar{% else %}Registrar{% endif %} Asistencia{% endblock %}
+{% block content %}
+<h2>{% if edit_mode %}Editar{% else %}Registrar{% endif %} Asistencia</h2>
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {% if not edit_mode %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Estudiante:</label>
+            <select name="estudiante" required style="width: 100%; padding: 0.5rem;">
+                <option value="">Seleccionar estudiante...</option>
+                {% for est in estudiantes %}
+                <option value="{{ est.id }}">{{ est.get_full_name|default:est.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Materia:</label>
+            <select name="materia" required style="width: 100%; padding: 0.5rem;">
+                <option value="">Seleccionar materia...</option>
+                {% for mat in materias %}
+                <option value="{{ mat.id }}">{{ mat.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Fecha:</label>
+            <input type="date" name="fecha" value="{{ fecha_hoy }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        {% else %}
+        <p><strong>Estudiante:</strong> {{ asistencia.estudiante.get_full_name|default:asistencia.estudiante.username }}</p>
+        <p><strong>Materia:</strong> {{ asistencia.materia.nombre }}</p>
+        <p><strong>Fecha:</strong> {{ asistencia.fecha|date:"d/m/Y" }}</p>
+        {% endif %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Estado:</label>
+            <select name="estado" required style="width: 100%; padding: 0.5rem;">
+                {% for value, label in estados %}
+                <option value="{{ value }}" {% if asistencia.estado == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Observaciones:</label>
+            <textarea name="observaciones" style="width: 100%; padding: 0.5rem; min-height: 100px;">{{ asistencia.observaciones|default:'' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'teacher_asistencias_lista' %}" class="btn btn-danger">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

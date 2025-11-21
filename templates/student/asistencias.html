@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Mis Asistencias{% endblock %}
+{% block content %}
+<h2>📅 Mis Asistencias</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Total Registros</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ presentes }}</div>
+        <div class="stat-label">Presente</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ ausentes }}</div>
+        <div class="stat-label">Ausente</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ porcentaje_asistencia }}%</div>
+        <div class="stat-label">% Asistencia</div>
+    </div>
+</div>
+<div class="card">
+    <table>
+        <thead><tr><th>Materia</th><th>Fecha</th><th>Estado</th><th>Observaciones</th></tr></thead>
+        <tbody>
+            {% for asist in asistencias %}
+            <tr>
+                <td>{{ asist.materia.nombre }}</td>
+                <td>{{ asist.fecha|date:"d/m/Y" }}</td>
+                <td>
+                    {% if asist.estado == 'presente' %}<span class="badge badge-success">Presente</span>
+                    {% elif asist.estado == 'ausente' %}<span class="badge badge-danger">Ausente</span>
+                    {% elif asist.estado == 'tardanza' %}<span class="badge badge-warning">Tardanza</span>
+                    {% else %}<span class="badge badge-info">Excusado</span>{% endif %}
+                </td>
+                <td>{{ asist.observaciones|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center;">No hay registros de asistencia</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

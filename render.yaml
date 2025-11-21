@@ -1,0 +1,30 @@
+databases:
+  - name: estudify-db
+    databaseName: estudify
+    user: estudify
+    plan: free
+
+services:
+  - type: web
+    name: estudify
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn estudify.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: estudify-db
+          property: connectionString
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: admin@estudify.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        value: admin123456

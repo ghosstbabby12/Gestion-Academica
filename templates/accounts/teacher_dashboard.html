@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Docente - Estudify{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 2rem; color: #2c3e50;">🎓 Panel del Docente</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ materias.count }}</div>
+        <div class="stat-label">Materias Asignadas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_estudiantes }}</div>
+        <div class="stat-label">Estudiantes Totales</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">📚 Mis Materias</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Materia</th>
+                <th>Código</th>
+                <th>Curso</th>
+                <th>Créditos</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for materia in materias %}
+            <tr>
+                <td><strong>{{ materia.nombre }}</strong></td>
+                <td>{{ materia.codigo }}</td>
+                <td>{{ materia.curso.nombre }}</td>
+                <td>{{ materia.creditos }}</td>
+                <td>
+                    {% if materia.activa %}
+                    <span class="badge badge-success">Activa</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactiva</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #7f8c8d;">No tienes materias asignadas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 class="card-title">📝 Calificaciones Recientes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Estudiante</th>
+                <th>Materia</th>
+                <th>Periodo</th>
+                <th>Nota</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cal in calificaciones_recientes %}
+            <tr>
+                <td><strong>{{ cal.estudiante.get_full_name|default:cal.estudiante.username }}</strong></td>
+                <td>{{ cal.materia.nombre }}</td>
+                <td>{{ cal.get_periodo_display }}</td>
+                <td><strong>{{ cal.nota }}</strong></td>
+                <td>
+                    {% if cal.aprobado %}
+                    <span class="badge badge-success">Aprobado</span>
+                    {% else %}
+                    <span class="badge badge-danger">Reprobado</span>
+                    {% endif %}
+                </td>
+                <td>{{ cal.fecha_registro|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #7f8c8d;">No hay calificaciones registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 class="card-title">⚙️ Acciones Rápidas</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="/admin/core/calificacion/add/" class="btn btn-primary">➕ Registrar Calificación</a>
+        <a href="/admin/core/asistencia/add/" class="btn btn-primary">📅 Registrar Asistencia</a>
+        <a href="/admin/core/calificacion/" class="btn btn-success">📊 Ver Todas las Calificaciones</a>
+        <a href="/admin/core/asistencia/" class="btn btn-success">📋 Ver Todas las Asistencias</a>
+    </div>
+</div>
+{% endblock %}

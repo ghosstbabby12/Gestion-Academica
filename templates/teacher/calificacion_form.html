@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Editar{% else %}Registrar{% endif %} Calificación{% endblock %}
+{% block content %}
+<h2>{% if edit_mode %}Editar{% else %}Registrar{% endif %} Calificación</h2>
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        {% if not edit_mode %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Estudiante:</label>
+            <select name="estudiante" required style="width: 100%; padding: 0.5rem;">
+                <option value="">Seleccionar estudiante...</option>
+                {% for est in estudiantes %}
+                <option value="{{ est.id }}">{{ est.get_full_name|default:est.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Materia:</label>
+            <select name="materia" required style="width: 100%; padding: 0.5rem;">
+                <option value="">Seleccionar materia...</option>
+                {% for mat in materias %}
+                <option value="{{ mat.id }}">{{ mat.nombre }} - {{ mat.curso.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Periodo:</label>
+            <select name="periodo" required style="width: 100%; padding: 0.5rem;">
+                {% for value, label in periodos %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <p><strong>Estudiante:</strong> {{ calificacion.estudiante.get_full_name|default:calificacion.estudiante.username }}</p>
+        <p><strong>Materia:</strong> {{ calificacion.materia.nombre }}</p>
+        <p><strong>Periodo:</strong> {{ calificacion.get_periodo_display }}</p>
+        {% endif %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Nota (0.0 - 5.0):</label>
+            <input type="number" name="nota" value="{{ calificacion.nota|default:'' }}" step="0.01" min="0" max="5" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Observaciones:</label>
+            <textarea name="observaciones" style="width: 100%; padding: 0.5rem; min-height: 100px;">{{ calificacion.observaciones|default:'' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'teacher_calificaciones_lista' %}" class="btn btn-danger">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

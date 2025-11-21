@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Editar{% else %}Crear{% endif %} Materia{% endblock %}
+{% block content %}
+<h2>{% if edit_mode %}Editar{% else %}Crear{% endif %} Materia</h2>
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Nombre:</label>
+            <input type="text" name="nombre" value="{{ materia.nombre|default:'' }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Código:</label>
+            <input type="text" name="codigo" value="{{ materia.codigo|default:'' }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Descripción:</label>
+            <textarea name="descripcion" style="width: 100%; padding: 0.5rem; min-height: 100px;">{{ materia.descripcion|default:'' }}</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Curso:</label>
+            <select name="curso" required style="width: 100%; padding: 0.5rem;">
+                <option value="">Seleccionar curso...</option>
+                {% for curso in cursos %}
+                <option value="{{ curso.id }}" {% if materia.curso.id == curso.id %}selected{% endif %}>{{ curso.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Docente:</label>
+            <select name="docente" style="width: 100%; padding: 0.5rem;">
+                <option value="">Sin asignar</option>
+                {% for docente in docentes %}
+                <option value="{{ docente.id }}" {% if materia.docente.id == docente.id %}selected{% endif %}>{{ docente.get_full_name|default:docente.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Créditos:</label>
+            <input type="number" name="creditos" value="{{ materia.creditos|default:1 }}" required style="width: 100%; padding: 0.5rem;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label><input type="checkbox" name="activa" {% if edit_mode %}{% if materia.activa %}checked{% endif %}{% else %}checked{% endif %}> Activa</label>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{% url 'admin_materias_lista' %}" class="btn btn-danger">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Mi Panel{% endblock %}
+{% block content %}
+<h2>📖 Mi Panel Estudiantil</h2>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ promedio }}</div>
+        <div class="stat-label">Promedio General</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ matriculas.count }}</div>
+        <div class="stat-label">Cursos Matriculados</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ porcentaje_asistencia }}%</div>
+        <div class="stat-label">Asistencia del Mes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ notificaciones.count }}</div>
+        <div class="stat-label">Notificaciones Nuevas</div>
+    </div>
+</div>
+{% if notificaciones %}
+<div class="card">
+    <h3>🔔 Notificaciones</h3>
+    {% for notif in notificaciones %}
+    <div class="notification">
+        <div class="notification-title">{{ notif.titulo }}</div>
+        <div>{{ notif.mensaje }}</div>
+        <small style="color: #7f8c8d;">{{ notif.creada_en|date:"d/m/Y H:i" }}</small>
+        <a href="{% url 'student_marcar_leida' notif.id %}" style="margin-left: 1rem; color: #3498db;">Marcar como leída</a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>📝 Calificaciones Recientes</h3>
+        <a href="{% url 'student_exportar' %}" class="btn btn-success">📥 Exportar a Excel</a>
+    </div>
+    <table>
+        <thead><tr><th>Materia</th><th>Periodo</th><th>Nota</th><th>Estado</th></tr></thead>
+        <tbody>
+            {% for cal in calificaciones|slice:":10" %}
+            <tr>
+                <td>{{ cal.materia.nombre }}</td>
+                <td>{{ cal.get_periodo_display }}</td>
+                <td><strong>{{ cal.nota }}</strong></td>
+                <td>{% if cal.aprobado %}<span class="badge badge-success">Aprobado</span>{% else %}<span class="badge badge-danger">Reprobado</span>{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center;">No tienes calificaciones</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

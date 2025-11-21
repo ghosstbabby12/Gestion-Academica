@@ -1,0 +1,14 @@
+<form method="POST">
+    {% csrf_token %}
+    <label>Usuario</label>
+    <input type="text" name="username">
+
+    <label>Contraseña</label>
+    <input type="password" name="password">
+
+    <button type="submit">Iniciar sesión</button>
+
+    {% for message in messages %}
+        <p style="color: red;">{{ message }}</p>
+    {% endfor %}
+</form>

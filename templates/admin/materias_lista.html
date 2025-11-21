@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Materias{% endblock %}
+{% block content %}
+<h2>📖 Gestión de Materias</h2>
+<div style="margin: 1.5rem 0;">
+    <a href="{% url 'admin_materia_crear' %}" class="btn btn-success">➕ Crear Materia</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Nombre</th><th>Código</th><th>Curso</th><th>Docente</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for materia in materias %}
+            <tr>
+                <td><strong>{{ materia.nombre }}</strong></td>
+                <td>{{ materia.codigo }}</td>
+                <td>{{ materia.curso.nombre }}</td>
+                <td>{{ materia.docente.get_full_name|default:materia.docente.username|default:"-" }}</td>
+                <td>{% if materia.activa %}<span class="badge badge-success">Activa</span>{% else %}<span class="badge badge-danger">Inactiva</span>{% endif %}</td>
+                <td>
+                    <a href="{% url 'admin_materia_editar' materia.id %}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Editar</a>
+                    <a href="{% url 'admin_materia_eliminar' materia.id %}" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

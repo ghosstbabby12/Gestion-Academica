@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Asistencias{% endblock %}
+{% block content %}
+<h2>📅 Gestión de Asistencias</h2>
+<div style="margin: 1.5rem 0;">
+    <a href="{% url 'teacher_asistencia_crear' %}" class="btn btn-success">➕ Registrar Asistencia</a>
+</div>
+<div class="card">
+    <table>
+        <thead>
+            <tr><th>Estudiante</th><th>Materia</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            {% for asist in asistencias %}
+            <tr>
+                <td>{{ asist.estudiante.get_full_name|default:asist.estudiante.username }}</td>
+                <td>{{ asist.materia.nombre }}</td>
+                <td>{{ asist.fecha|date:"d/m/Y" }}</td>
+                <td>
+                    {% if asist.estado == 'presente' %}<span class="badge badge-success">Presente</span>
+                    {% elif asist.estado == 'ausente' %}<span class="badge badge-danger">Ausente</span>
+                    {% elif asist.estado == 'tardanza' %}<span class="badge badge-warning">Tardanza</span>
+                    {% else %}<span class="badge badge-info">Excusado</span>{% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'teacher_asistencia_editar' asist.id %}" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Editar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align: center;">No hay asistencias registradas</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
