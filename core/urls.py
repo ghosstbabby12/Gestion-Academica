@@ -7,20 +7,20 @@ from .student_views import *
 urlpatterns = [
     path('', views.home, name='core_home'),
 
-    # Admin URLs
-    path('admin/dashboard/', admin_dashboard, name='admin_dashboard'),
-    path('admin/usuarios/', usuarios_lista, name='admin_usuarios_lista'),
-    path('admin/usuarios/crear/', usuario_crear, name='admin_usuario_crear'),
-    path('admin/usuarios/<int:user_id>/editar/', usuario_editar, name='admin_usuario_editar'),
-    path('admin/usuarios/<int:user_id>/eliminar/', usuario_eliminar, name='admin_usuario_eliminar'),
-    path('admin/cursos/', cursos_lista, name='admin_cursos_lista'),
-    path('admin/cursos/crear/', curso_crear, name='admin_curso_crear'),
-    path('admin/cursos/<int:curso_id>/editar/', curso_editar, name='admin_curso_editar'),
-    path('admin/cursos/<int:curso_id>/eliminar/', curso_eliminar, name='admin_curso_eliminar'),
-    path('admin/materias/', materias_lista, name='admin_materias_lista'),
-    path('admin/materias/crear/', materia_crear, name='admin_materia_crear'),
-    path('admin/materias/<int:materia_id>/editar/', materia_editar, name='admin_materia_editar'),
-    path('admin/materias/<int:materia_id>/eliminar/', materia_eliminar, name='admin_materia_eliminar'),
+    # Panel Admin URLs (cambiado de /admin/ a /panel/)
+    path('panel/dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('panel/usuarios/', usuarios_lista, name='admin_usuarios_lista'),
+    path('panel/usuarios/crear/', usuario_crear, name='admin_usuario_crear'),
+    path('panel/usuarios/<int:user_id>/editar/', usuario_editar, name='admin_usuario_editar'),
+    path('panel/usuarios/<int:user_id>/eliminar/', usuario_eliminar, name='admin_usuario_eliminar'),
+    path('panel/cursos/', cursos_lista, name='admin_cursos_lista'),
+    path('panel/cursos/crear/', curso_crear, name='admin_curso_crear'),
+    path('panel/cursos/<int:curso_id>/editar/', curso_editar, name='admin_curso_editar'),
+    path('panel/cursos/<int:curso_id>/eliminar/', curso_eliminar, name='admin_curso_eliminar'),
+    path('panel/materias/', materias_lista, name='admin_materias_lista'),
+    path('panel/materias/crear/', materia_crear, name='admin_materia_crear'),
+    path('panel/materias/<int:materia_id>/editar/', materia_editar, name='admin_materia_editar'),
+    path('panel/materias/<int:materia_id>/eliminar/', materia_eliminar, name='admin_materia_eliminar'),
 
     # Teacher URLs
     path('teacher/dashboard/', teacher_dashboard, name='teacher_dashboard'),
