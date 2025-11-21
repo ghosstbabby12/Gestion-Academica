@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Mi Panel{% endblock %}
+
 {% block content %}
 <h2>📖 Mi Panel Estudiantil</h2>
 <div class="stats-grid">
@@ -8,8 +9,8 @@
         <div class="stat-label">Promedio General</div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ matriculas.count }}</div>
-        <div class="stat-label">Cursos Matriculados</div>
+        <div class="stat-value">{{ materias_inscritas.count }}</div>
+        <div class="stat-label">Materias Inscritas</div> 
     </div>
     <div class="stat-card">
         <div class="stat-value">{{ porcentaje_asistencia }}%</div>
@@ -20,6 +21,30 @@
         <div class="stat-label">Notificaciones Nuevas</div>
     </div>
 </div>
+
+<hr>
+
+<div class="card">
+    <h3>📌 Mis Materias Inscritas</h3>
+    <table>
+        <thead><tr><th>Materia</th><th>Curso</th><th>Docente</th><th>Fecha Inscripción</th></tr></thead>
+        <tbody>
+            {% for inscripcion in materias_inscritas %}
+            <tr>
+                <td><strong>{{ inscripcion.materia.nombre }}</strong></td>
+                <td>{{ inscripcion.materia.curso.nombre }}</td>
+                <td>{{ inscripcion.materia.docente.get_full_name|default:"(Sin asignar)" }}</td>
+                <td>{{ inscripcion.fecha_inscripcion|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center;">No estás inscrito en ninguna materia directamente</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<hr>
+
 {% if notificaciones %}
 <div class="card">
     <h3>🔔 Notificaciones</h3>
@@ -28,15 +53,17 @@
         <div class="notification-title">{{ notif.titulo }}</div>
         <div>{{ notif.mensaje }}</div>
         <small style="color: #7f8c8d;">{{ notif.creada_en|date:"d/m/Y H:i" }}</small>
-        <a href="{% url 'student_marcar_leida' notif.id %}" style="margin-left: 1rem; color: #3498db;">Marcar como leída</a>
+        <a href="{% url 'student_marcar_leida' notif.id %}" style="margin-left: 1rem; color: #3498db;">Marcar como leída</a> 
     </div>
     {% endfor %}
 </div>
+<hr>
 {% endif %}
+
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3>📝 Calificaciones Recientes</h3>
-        <a href="{% url 'student_exportar' %}" class="btn btn-success">📥 Exportar a Excel</a>
+        <a href="{% url 'student_exportar' %}" class="btn btn-success">📥 Exportar a Excel</a> 
     </div>
     <table>
         <thead><tr><th>Materia</th><th>Periodo</th><th>Nota</th><th>Estado</th></tr></thead>
