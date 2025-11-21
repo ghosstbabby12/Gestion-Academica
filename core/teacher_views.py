@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from .models import Materia, Matricula, Calificacion, Asistencia, Notificacion
+from .models import Materia, Matricula, Calificacion, Asistencia, Notificacion, InscripcionMateria
 from accounts.models import CustomUser
 
 
@@ -396,3 +396,89 @@ def estadisticas(request):
         })
 
     return render(request, 'teacher/estadisticas.html', {'stats': stats})
+
+
+# ==================== GESTIÓN DE ESTUDIANTES EN MATERIAS ====================
+
+@login_required
+@user_passes_test(is_teacher)
+def estudiantes_materia(request):
+    """Ver y gestionar estudiantes inscritos en las materias del docente"""
+    materias = Materia.objects.filter(docente=request.user, activa=True)
+
+    materia_id = request.GET.get('materia')
+    materia_seleccionada = None
+    estudiantes_inscritos = []
+
+    if materia_id:
+        materia_seleccionada = get_object_or_404(Materia, id=materia_id, docente=request.user)
+        estudiantes_inscritos = InscripcionMateria.objects.filter(
+            materia=materia_seleccionada
+        ).select_related('estudiante').order_by('estudiante__username')
+
+    context = {
+        'materias': materias,
+        'materia_seleccionada': materia_seleccionada,
+        'estudiantes_inscritos': estudiantes_inscritos,
+    }
+    return render(request, 'teacher/estudiantes_materia.html', context)
+
+
+@login_required
+@user_passes_test(is_teacher)
+def inscribir_estudiante(request):
+    """Inscribir un estudiante existente a una materia"""
+    materias = Materia.objects.filter(docente=request.user, activa=True)
+
+    if request.method == 'POST':
+        materia_id = request.POST.get('materia')
+        estudiante_id = request.POST.get('estudiante')
+
+        materia = get_object_or_404(Materia, id=materia_id, docente=request.user)
+        estudiante = get_object_or_404(CustomUser, id=estudiante_id, role='estudiante')
+
+        # Verificar si ya está inscrito
+        if InscripcionMateria.objects.filter(estudiante=estudiante, materia=materia).exists():
+            messages.error(request, f'{estudiante.get_full_name() or estudiante.username} ya está inscrito en {materia.nombre}')
+        else:
+            InscripcionMateria.objects.create(
+                estudiante=estudiante,
+                materia=materia
+            )
+            messages.success(request, f'{estudiante.get_full_name() or estudiante.username} inscrito exitosamente en {materia.nombre}')
+
+        return redirect(f'/teacher/estudiantes/?materia={materia_id}')
+
+    # Obtener todos los estudiantes activos
+    estudiantes = CustomUser.objects.filter(
+        role='estudiante',
+        is_active=True
+    ).order_by('username')
+
+    context = {
+        'materias': materias,
+        'estudiantes': estudiantes,
+    }
+    return render(request, 'teacher/inscribir_estudiante.html', context)
+
+
+@login_required
+@user_passes_test(is_teacher)
+def desinscribir_estudiante(request, inscripcion_id):
+    """Desinscribir un estudiante de una materia"""
+    inscripcion = get_object_or_404(
+        InscripcionMateria,
+        id=inscripcion_id,
+        materia__docente=request.user
+    )
+
+    if request.method == 'POST':
+        materia_id = inscripcion.materia.id
+        estudiante_nombre = inscripcion.estudiante.get_full_name() or inscripcion.estudiante.username
+        materia_nombre = inscripcion.materia.nombre
+
+        inscripcion.delete()
+        messages.success(request, f'{estudiante_nombre} desinscrito de {materia_nombre}')
+        return redirect(f'/teacher/estudiantes/?materia={materia_id}')
+
+    return render(request, 'teacher/desinscribir_confirmar.html', {'inscripcion': inscripcion})

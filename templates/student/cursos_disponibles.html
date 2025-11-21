@@ -1,0 +1,63 @@
+{% extends 'base.html' %} 
+{% load static %}
+
+{% block title %}Matrícula de Cursos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <h2>🏫 Cursos Disponibles para Matrícula</h2>
+            <p class="text-muted">Inscríbete a un curso para relacionarte con el plan de estudios correspondiente.</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if cursos_disponibles %}
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Curso</th>
+                                        <th>Año Escolar</th>
+                                        <th>Descripción</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for curso in cursos_disponibles %}
+                                    <tr>
+                                        <td><strong>{{ curso.nombre }}</strong></td>
+                                        <td>{{ curso.año_escolar }}</td>
+                                        <td>{{ curso.descripcion|truncatechars:50 }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'student_matricular_curso' curso.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    Matricularme
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-success" role="alert">
+                    ¡Felicidades! Estás matriculado en todos los cursos disponibles o no hay cursos activos.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

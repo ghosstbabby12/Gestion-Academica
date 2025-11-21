@@ -22,7 +22,14 @@
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="text-align: center;">
+        <h3 style="margin-bottom: 1rem;">👥 Estudiantes</h3>
+        <p style="color: #718096; margin-bottom: 1.5rem;">Inscribe estudiantes en tus materias</p>
+        <a href="{% url 'teacher_estudiantes_materia' %}" class="btn btn-primary" style="margin-right: 0.5rem;">Ver Estudiantes</a>
+        <a href="{% url 'teacher_inscribir_estudiante' %}" class="btn btn-success">➕ Inscribir</a>
+    </div>
+
     <div class="card" style="text-align: center;">
         <h3 style="margin-bottom: 1rem;">📝 Calificaciones</h3>
         <p style="color: #718096; margin-bottom: 1.5rem;">Gestiona las notas de tus estudiantes</p>

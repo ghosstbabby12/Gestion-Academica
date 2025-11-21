@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar Desinscripción{% endblock %}
+{% block content %}
+<h2>⚠️ Confirmar Desinscripción</h2>
+
+<div class="card" style="background: rgba(255, 107, 149, 0.1); border-left: 4px solid #EA5455;">
+    <h3 style="color: #EA5455; margin-bottom: 1rem;">¿Estás seguro de desinscribir a este estudiante?</h3>
+
+    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <p style="margin-bottom: 0.5rem;"><strong>Estudiante:</strong> {{ inscripcion.estudiante.get_full_name|default:inscripcion.estudiante.username }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Usuario:</strong> {{ inscripcion.estudiante.username }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Materia:</strong> {{ inscripcion.materia.nombre }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Curso:</strong> {{ inscripcion.materia.curso.nombre }}</p>
+        <p style="margin: 0;"><strong>Inscrito desde:</strong> {{ inscripcion.fecha_inscripcion|date:"d/m/Y" }}</p>
+    </div>
+
+    <div style="background: rgba(255, 200, 114, 0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <p style="color: #4a5568; margin: 0;">
+            <strong>⚠️ Advertencia:</strong> Esta acción no eliminará las calificaciones y asistencias ya registradas para este estudiante en esta materia, pero no podrás registrar nuevas hasta que lo inscribas nuevamente.
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-danger">🗑️ Sí, Desinscribir</button>
+            <a href="{% url 'teacher_estudiantes_materia' %}?materia={{ inscripcion.materia.id }}" class="btn btn-primary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

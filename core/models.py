@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+# Los modelos Curso, Materia y Matricula se mantienen iguales
 
 class Curso(models.Model):
     """Representa un curso o grado académico (ej: 10°, 11°)"""
@@ -48,7 +49,7 @@ class Materia(models.Model):
 
 
 class Matricula(models.Model):
-    """Relación entre estudiantes y cursos"""
+    """Relación entre estudiantes y cursos (Se mantiene para indicar el curso principal del estudiante)"""
     estudiante = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -69,6 +70,41 @@ class Matricula(models.Model):
     def __str__(self):
         return f"{self.estudiante.get_full_name() or self.estudiante.username} - {self.curso.nombre}"
 
+
+## 🌟 NUEVO MODELO CLAVE: InscripcionMateria
+class InscripcionMateria(models.Model):
+    """
+    Gestiona la inscripción directa de un estudiante a una materia.
+    Esto permite al profesor obtener la lista exacta de alumnos para calificar/asistir.
+    """
+    estudiante = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'estudiante'},
+        related_name='inscripciones_materia',
+        verbose_name="Estudiante Inscrito"
+    )
+    materia = models.ForeignKey(
+        Materia,
+        on_delete=models.CASCADE,
+        related_name='inscripciones_estudiantes',
+        verbose_name="Materia Inscrita"
+    )
+    fecha_inscripcion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Inscripción")
+
+    class Meta:
+        verbose_name = "Inscripción a Materia"
+        verbose_name_plural = "Inscripciones a Materias"
+        # Garantiza que un estudiante no se inscriba dos veces en la misma materia
+        unique_together = ['estudiante', 'materia']
+        ordering = ['materia', 'estudiante']
+
+    def __str__(self):
+        return f"Inscripción: {self.estudiante.username} en {self.materia.nombre}"
+
+
+# Los modelos Calificacion, Asistencia y Notificacion se adaptan para usar esta nueva lógica
+# Su estructura original ya usa 'estudiante' y 'materia', lo cual es correcto.
 
 class Calificacion(models.Model):
     """Calificaciones de estudiantes en materias"""

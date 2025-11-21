@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Inscribir Estudiante{% endblock %}
+{% block content %}
+<h2>➕ Inscribir Estudiante a Materia</h2>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="materia">Materia:</label>
+            <select name="materia" id="materia" required>
+                <option value="">-- Seleccionar Materia --</option>
+                {% for materia in materias %}
+                <option value="{{ materia.id }}" {% if request.GET.materia == materia.id|stringformat:"s" %}selected{% endif %}>
+                    {{ materia.nombre }} ({{ materia.codigo }}) - {{ materia.curso.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="estudiante">Estudiante:</label>
+            <select name="estudiante" id="estudiante" required>
+                <option value="">-- Seleccionar Estudiante --</option>
+                {% for estudiante in estudiantes %}
+                <option value="{{ estudiante.id }}">
+                    {{ estudiante.get_full_name|default:estudiante.username }} ({{ estudiante.username }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-success">✅ Inscribir Estudiante</button>
+            <a href="{% url 'teacher_estudiantes_materia' %}" class="btn btn-danger">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="background: rgba(132, 217, 255, 0.1); border-left: 4px solid #00CFE8;">
+    <h4 style="color: #00CFE8; margin-bottom: 0.75rem;">💡 Consejos</h4>
+    <ul style="color: #4a5568; margin: 0; padding-left: 1.5rem;">
+        <li>Solo puedes inscribir estudiantes que estén activos en el sistema</li>
+        <li>Si el estudiante ya está inscrito, se mostrará un mensaje de error</li>
+        <li>Una vez inscrito, podrás registrar calificaciones y asistencias para ese estudiante</li>
+    </ul>
+</div>
+
+{% endblock %}

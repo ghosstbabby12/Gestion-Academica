@@ -34,6 +34,9 @@ urlpatterns = [
     path('teacher/asistencias/<int:asistencia_id>/eliminar/', asistencia_eliminar, name='teacher_asistencia_eliminar'),
     path('teacher/estadisticas/', estadisticas, name='teacher_estadisticas'),
     path('teacher/reporte/', generar_reporte, name='teacher_generar_reporte'),
+    path('teacher/estudiantes/', estudiantes_materia, name='teacher_estudiantes_materia'),
+    path('teacher/estudiantes/inscribir/', inscribir_estudiante, name='teacher_inscribir_estudiante'),
+    path('teacher/estudiantes/desinscribir/<int:inscripcion_id>/', desinscribir_estudiante, name='teacher_desinscribir_estudiante'),
 
     # Student URLs
     path('student/dashboard/', student_dashboard, name='student_dashboard'),

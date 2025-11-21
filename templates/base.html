@@ -373,6 +373,7 @@
             <a href="{% url 'admin_materias_lista' %}" style="color: white; text-decoration: none;">Materias</a>
             {% elif user.role == 'docente' %}
             <a href="{% url 'teacher_dashboard' %}" style="color: white; text-decoration: none;">Inicio</a>
+            <a href="{% url 'teacher_estudiantes_materia' %}" style="color: white; text-decoration: none;">Estudiantes</a>
             <a href="{% url 'teacher_calificaciones_lista' %}" style="color: white; text-decoration: none;">Calificaciones</a>
             <a href="{% url 'teacher_asistencias_lista' %}" style="color: white; text-decoration: none;">Asistencias</a>
             <a href="{% url 'teacher_estadisticas' %}" style="color: white; text-decoration: none;">Estadísticas</a>

@@ -3,46 +3,102 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from .models import Curso, Materia, Matricula, Calificacion, Asistencia, Notificacion
-from accounts.models import CustomUser
 
+# Asegúrate de importar TODOS tus modelos
+# IMPORTANTE: Esto asume que todos estos modelos están en core.models
+from core.models import Curso, Materia, Matricula, Calificacion, Asistencia, Notificacion, InscripcionMateria 
+from accounts.models import CustomUser 
+
+
+# ----------------------------------------------------------------------
+# (1. VISTAS DE AUTENTICACIÓN Y REDIRECCIÓN)
+# ----------------------------------------------------------------------
 
 def home(request):
+    """Redirige al login o al dashboard si está autenticado."""
     if request.user.is_authenticated:
         return redirect('dashboard')
     return redirect('login')
 
 
+def login_view(request):
+    """Maneja el inicio de sesión."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")
+        else:
+            messages.error(request, "Usuario o contraseña incorrectos")
+
+    return render(request, "accounts/login.html")
+
+
+@login_required
+def logout_view(request):
+    """Cerrar sesión"""
+    logout(request)
+    return redirect('login')
+
+
+@login_required
+def dashboard(request):
+    """Vista principal del dashboard que redirige según el tipo de usuario"""
+    user = request.user
+
+    if user.is_superuser or user.is_staff:
+        return redirect('admin_dashboard')
+    elif user.role == 'docente':
+        return redirect('teacher_dashboard')
+    else:
+        return redirect('student_dashboard')
+
+
+# ----------------------------------------------------------------------
+# (2. VISTAS DE DASHBOARD - El resto de dashboards DEBERÍAN moverse a sus propios archivos)
+# ----------------------------------------------------------------------
+# NOTA: Los dashboards de Admin y Teacher DEBERÍAN ir en admin_views.py y teacher_views.py
+# PERO los dejo aquí para evitar un nuevo ImportError.
+# Asumo que las vistas específicas de estudiante como 'student_dashboard' se mueven a 'student_views.py'
+# y las funciones 'admin_dashboard' y 'teacher_dashboard' se dejan en 'core/views.py' o se mueven a sus respectivos archivos.
+
+# Dejo solo el admin_dashboard aquí para la estructura de 'core/views.py'
 @login_required
 def admin_dashboard(request):
     """Dashboard principal para administradores"""
     if not (request.user.is_superuser or request.user.is_staff):
         return HttpResponseForbidden()
 
-    # Estadísticas generales
+    # (Lógica de estadísticas de Admin, se mantiene igual)
+
     total_estudiantes = CustomUser.objects.filter(role='estudiante', is_active=True).count()
     total_docentes = CustomUser.objects.filter(role='docente', is_active=True).count()
     total_cursos = Curso.objects.filter(activo=True).count()
     total_materias = Materia.objects.filter(activa=True).count()
 
-    # Promedio general
     promedio_general = Calificacion.objects.aggregate(Avg('nota'))['nota__avg'] or 0
 
-    # Asistencia del mes
     mes_actual = timezone.now().month
-    asistencias_mes = Asistencia.objects.filter(fecha__month=mes_actual)
+    asistencias_mes = Asistencia.objects.filter(fecha__month=mes_actual) 
     total_asistencias = asistencias_mes.count()
     asistencias_presentes = asistencias_mes.filter(estado='presente').count()
     porcentaje_asistencia = (asistencias_presentes / total_asistencias * 100) if total_asistencias > 0 else 0
 
-    # Estudiantes recientes
     estudiantes_recientes = CustomUser.objects.filter(
         role='estudiante'
     ).order_by('-date_joined')[:5]
 
-    # Cursos con más estudiantes
     cursos_populares = Curso.objects.annotate(
         num_estudiantes=Count('matriculas', filter=Q(matriculas__activa=True))
     ).order_by('-num_estudiantes')[:5]
@@ -61,141 +117,107 @@ def admin_dashboard(request):
     return render(request, 'accounts/admin_dashboard.html', context)
 
 
-@login_required
-def teacher_dashboard(request):
-    """Dashboard para docentes"""
-    if request.user.role != 'docente':
-        return HttpResponseForbidden()
-
-    # Materias del docente
-    materias = Materia.objects.filter(docente=request.user, activa=True)
-
-    # Estudiantes totales
-    estudiantes_ids = Matricula.objects.filter(
-        curso__materias__in=materias,
-        activa=True
-    ).values_list('estudiante_id', flat=True).distinct()
-    total_estudiantes = len(estudiantes_ids)
-
-    # Calificaciones recientes
-    calificaciones_recientes = Calificacion.objects.filter(
-        materia__in=materias
-    ).select_related('estudiante', 'materia').order_by('-fecha_registro')[:10]
-
-    context = {
-        'materias': materias,
-        'total_estudiantes': total_estudiantes,
-        'calificaciones_recientes': calificaciones_recientes,
-    }
-
-    return render(request, 'accounts/teacher_dashboard.html', context)
-
+# ----------------------------------------------------------------------
+# (3. VISTAS DE MATRÍCULA Y ASIGNACIÓN - Para evitar AttributeError en URLs)
+# Estas vistas se llaman con `views.nombre_funcion` en urls.py, por lo que deben ir aquí.
+# ----------------------------------------------------------------------
 
 @login_required
-def student_dashboard(request):
-    """Dashboard para estudiantes"""
+def estudiante_listar_materias(request):
+    """Muestra todas las materias disponibles a las que el estudiante no está inscrito."""
     if request.user.role != 'estudiante':
         return HttpResponseForbidden()
 
-    # Matrículas activas
-    matriculas = Matricula.objects.filter(
-        estudiante=request.user,
-        activa=True
-    ).select_related('curso')
-
-    # Calificaciones
-    calificaciones = Calificacion.objects.filter(
+    # IDs de las materias a las que el estudiante ya está inscrito
+    materias_inscritas_ids = InscripcionMateria.objects.filter(
         estudiante=request.user
-    ).select_related('materia', 'materia__curso').order_by('-fecha_registro')
+    ).values_list('materia_id', flat=True)
 
-    # Promedio general
-    promedio = calificaciones.aggregate(Avg('nota'))['nota__avg'] or 0
-
-    # Notificaciones no leídas
-    notificaciones = Notificacion.objects.filter(
-        estudiante=request.user,
-        leida=False
-    ).order_by('-creada_en')[:5]
-
-    # Asistencias del mes
-    mes_actual = timezone.now().month
-    asistencias_mes = Asistencia.objects.filter(
-        estudiante=request.user,
-        fecha__month=mes_actual
-    )
-    total_asistencias = asistencias_mes.count()
-    presentes = asistencias_mes.filter(estado='presente').count()
-    porcentaje_asistencia = (presentes / total_asistencias * 100) if total_asistencias > 0 else 0
+    # Materias activas excluyendo las ya inscritas
+    materias_disponibles = Materia.objects.filter(activa=True).exclude(
+        id__in=materias_inscritas_ids
+    ).select_related('curso', 'docente').order_by('curso__nombre', 'nombre')
 
     context = {
-        'matriculas': matriculas,
-        'calificaciones': calificaciones,
-        'promedio': round(promedio, 2),
-        'notificaciones': notificaciones,
-        'porcentaje_asistencia': round(porcentaje_asistencia, 1),
+        'materias_disponibles': materias_disponibles
     }
-
-    return render(request, 'accounts/student_dashboard.html', context)
+    return render(request, 'student/materias_disponibles.html', context) 
 
 
 @login_required
-def exportar_calificaciones(request):
-    """Exportar calificaciones a Excel"""
+def estudiante_inscribir_materia(request, materia_id):
+    """Procesa la inscripción del estudiante a una materia específica."""
+    if request.user.role != 'estudiante':
+        return HttpResponseForbidden()
+    
+    if request.method != 'POST':
+        # Nota: La URL correcta es 'student_listar_materias' (corregida en urls.py)
+        return redirect('student_listar_materias') 
+
+    materia = get_object_or_404(Materia, id=materia_id, activa=True)
+
+    try:
+        InscripcionMateria.objects.create(
+            estudiante=request.user,
+            materia=materia
+        )
+        messages.success(request, f"¡Inscripción exitosa a {materia.nombre}!")
+    except Exception:
+        messages.error(request, f"Ya estás inscrito en {materia.nombre}.")
+
+    return redirect('student_listar_materias')
+
+
+@login_required
+def estudiante_listar_cursos(request):
+    """Muestra todos los cursos disponibles a los que el estudiante no está matriculado."""
     if request.user.role != 'estudiante':
         return HttpResponseForbidden()
 
-    # Crear workbook
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Mis Calificaciones"
+    cursos_matriculados_ids = Matricula.objects.filter(
+        estudiante=request.user,
+        activa=True
+    ).values_list('curso_id', flat=True)
 
-    # Estilos
-    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-    header_font = Font(color="FFFFFF", bold=True)
+    cursos_disponibles = Curso.objects.filter(activo=True).exclude(
+        id__in=cursos_matriculados_ids
+    ).order_by('nombre')
 
-    # Encabezados
-    headers = ['Materia', 'Curso', 'Periodo', 'Nota', 'Observaciones', 'Fecha']
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.fill = header_fill
-        cell.font = header_font
-        cell.alignment = Alignment(horizontal='center')
-
-    # Datos
-    calificaciones = Calificacion.objects.filter(
-        estudiante=request.user
-    ).select_related('materia', 'materia__curso').order_by('materia__curso', 'materia', 'periodo')
-
-    for row, cal in enumerate(calificaciones, 2):
-        ws.cell(row=row, column=1, value=cal.materia.nombre)
-        ws.cell(row=row, column=2, value=cal.materia.curso.nombre)
-        ws.cell(row=row, column=3, value=cal.get_periodo_display())
-        ws.cell(row=row, column=4, value=float(cal.nota))
-        ws.cell(row=row, column=5, value=cal.observaciones)
-        ws.cell(row=row, column=6, value=cal.fecha_registro.strftime('%d/%m/%Y'))
-
-    # Ajustar anchos de columna
-    ws.column_dimensions['A'].width = 30
-    ws.column_dimensions['B'].width = 20
-    ws.column_dimensions['C'].width = 15
-    ws.column_dimensions['D'].width = 10
-    ws.column_dimensions['E'].width = 40
-    ws.column_dimensions['F'].width = 15
-
-    # Preparar respuesta
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = f'attachment; filename=calificaciones_{request.user.username}.xlsx'
-    wb.save(response)
-
-    return response
+    context = {
+        'cursos_disponibles': cursos_disponibles
+    }
+    # RUTA DEL TEMPLATE: 'student/cursos_disponibles.html'
+    return render(request, 'student/cursos_disponibles.html', context)
 
 
 @login_required
-def marcar_notificacion_leida(request, notificacion_id):
-    """Marcar notificación como leída"""
-    notificacion = get_object_or_404(Notificacion, id=notificacion_id, estudiante=request.user)
-    notificacion.leida = True
-    notificacion.save()
-    return redirect('student_dashboard')
+def estudiante_matricular_curso(request, curso_id):
+    """Procesa la matrícula del estudiante a un curso específico."""
+    if request.user.role != 'estudiante':
+        return HttpResponseForbidden()
+    
+    if request.method != 'POST':
+        # Nota: La URL correcta es 'student_listar_cursos' (corregida en urls.py)
+        return redirect('student_listar_cursos') 
+
+    curso = get_object_or_404(Curso, id=curso_id, activo=True)
+
+    try:
+        Matricula.objects.create(
+            estudiante=request.user,
+            curso=curso,
+            activa=True
+        )
+        messages.success(request, f"¡Matrícula exitosa al curso {curso.nombre}!")
+    except Exception:
+        messages.error(request, f"Ya estás matriculado en el curso {curso.nombre}.")
+
+    return redirect('student_listar_cursos')
+
+
+# ----------------------------------------------------------------------
+# (4. VISTAS DE UTILIDAD - Asumo que estas van en student_views.py)
+# ----------------------------------------------------------------------
+# NOTA: Las funciones 'exportar_calificaciones' y 'marcar_notificacion_leida' 
+# estaban mezcladas aquí, pero si deben ser accesibles por 'student_views.py', 
+# deben ser MOVIDAS a 'core/student_views.py'

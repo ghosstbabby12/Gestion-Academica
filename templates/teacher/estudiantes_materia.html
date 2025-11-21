@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Gestionar Estudiantes{% endblock %}
+{% block content %}
+<h2>👥 Gestionar Estudiantes por Materia</h2>
+
+<div class="card">
+    <h3>Seleccionar Materia</h3>
+    <form method="get" style="margin-bottom: 0;">
+        <div style="display: flex; gap: 1rem; align-items: end;">
+            <div style="flex: 1;">
+                <label for="materia">Materia:</label>
+                <select name="materia" id="materia" required onchange="this.form.submit()">
+                    <option value="">-- Seleccionar Materia --</option>
+                    {% for materia in materias %}
+                    <option value="{{ materia.id }}" {% if materia_seleccionada and materia.id == materia_seleccionada.id %}selected{% endif %}>
+                        {{ materia.nombre }} ({{ materia.codigo }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if materia_seleccionada %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>📋 Estudiantes Inscritos en {{ materia_seleccionada.nombre }}</h3>
+        <a href="{% url 'teacher_inscribir_estudiante' %}?materia={{ materia_seleccionada.id }}" class="btn btn-success">➕ Inscribir Estudiante</a>
+    </div>
+
+    {% if estudiantes_inscritos %}
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre Completo</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Fecha Inscripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inscripcion in estudiantes_inscritos %}
+            <tr>
+                <td><strong>{{ inscripcion.estudiante.get_full_name|default:"--" }}</strong></td>
+                <td>{{ inscripcion.estudiante.username }}</td>
+                <td>{{ inscripcion.estudiante.email|default:"--" }}</td>
+                <td>{{ inscripcion.fecha_inscripcion|date:"d/m/Y" }}</td>
+                <td>
+                    <a href="{% url 'teacher_desinscribir_estudiante' inscripcion.id %}" class="btn btn-danger" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;">🗑️ Desinscribir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top: 1rem; color: #718096;">
+        <strong>Total:</strong> {{ estudiantes_inscritos.count }} estudiante{{ estudiantes_inscritos.count|pluralize }}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #718096;">
+        <p style="font-size: 1.2rem; margin-bottom: 1rem;">No hay estudiantes inscritos en esta materia</p>
+        <a href="{% url 'teacher_inscribir_estudiante' %}?materia={{ materia_seleccionada.id }}" class="btn btn-success">➕ Inscribir el primer estudiante</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card" style="background: rgba(129, 251, 184, 0.1); border-left: 4px solid #28C76F;">
+    <h4 style="color: #28C76F; margin-bottom: 0.75rem;">ℹ️ Información</h4>
+    <p style="color: #4a5568; margin: 0;">Debes inscribir estudiantes en tus materias para poder registrar calificaciones y asistencias para ellos.</p>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <p style="font-size: 1.2rem; color: #718096;">Selecciona una materia para ver los estudiantes inscritos</p>
+</div>
+{% endif %}
+
+{% endblock %}
