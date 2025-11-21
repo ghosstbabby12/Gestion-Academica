@@ -2,12 +2,12 @@ from django.urls import path
 from . import views
 from .admin_views import *
 from .teacher_views import *
-from .student_views import *
+from .student_views import * # Importa todas las vistas del estudiante aquí.
 
 urlpatterns = [
     path('', views.home, name='core_home'),
 
-    # Panel Admin URLs (cambiado de /admin/ a /panel/)
+    # Panel Admin URLs
     path('panel/dashboard/', admin_dashboard, name='admin_dashboard'),
     path('panel/usuarios/', usuarios_lista, name='admin_usuarios_lista'),
     path('panel/usuarios/crear/', usuario_crear, name='admin_usuario_crear'),

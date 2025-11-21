@@ -1,5 +1,6 @@
 """
-Vistas personalizadas para el panel de estudiantes (solo lectura)
+Vistas personalizadas para el panel de estudiantes.
+Contiene vistas de consulta (solo lectura) y acciones específicas (exportar, marcar notificaciones).
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -8,22 +9,30 @@ from django.utils import timezone
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from .models import Matricula, Calificacion, Asistencia, Notificacion
+# Importación COMPLETA de modelos para el contexto del estudiante
+from .models import Matricula, Calificacion, Asistencia, Notificacion, InscripcionMateria 
 
 
 def is_student(user):
+    """Verifica si el usuario es un estudiante."""
     return user.role == 'estudiante'
 
 
 @login_required
 @user_passes_test(is_student)
 def student_dashboard(request):
-    """Dashboard principal para estudiantes"""
-    # Matrículas activas
+    """Dashboard principal para estudiantes, mostrando estadísticas clave."""
+    
+    # Matrículas activas (Curso)
     matriculas = Matricula.objects.filter(
         estudiante=request.user,
         activa=True
     ).select_related('curso')
+
+    # Materias inscritas directamente (InscripcionMateria)
+    materias_inscritas = InscripcionMateria.objects.filter(
+        estudiante=request.user
+    ).select_related('materia', 'materia__curso')
 
     # Calificaciones
     calificaciones = Calificacion.objects.filter(
@@ -51,6 +60,7 @@ def student_dashboard(request):
 
     context = {
         'matriculas': matriculas,
+        'materias_inscritas': materias_inscritas, 
         'calificaciones': calificaciones,
         'promedio': round(promedio, 2),
         'notificaciones': notificaciones,
@@ -63,12 +73,12 @@ def student_dashboard(request):
 @login_required
 @user_passes_test(is_student)
 def mis_calificaciones(request):
-    """Ver todas las calificaciones"""
+    """Ver todas las calificaciones agrupadas por materia."""
     calificaciones = Calificacion.objects.filter(
         estudiante=request.user
     ).select_related('materia', 'materia__curso').order_by('materia__curso', 'materia', 'periodo')
 
-    # Agrupar por materia
+    # Agrupar por materia y calcular promedios
     calificaciones_por_materia = {}
     for cal in calificaciones:
         materia_key = cal.materia.id
@@ -80,9 +90,8 @@ def mis_calificaciones(request):
             }
         calificaciones_por_materia[materia_key]['calificaciones'].append(cal)
 
-    # Calcular promedios por materia
     for materia_data in calificaciones_por_materia.values():
-        notas = [float(cal.nota) for cal in materia_data['calificaciones']]
+        notas = [float(cal.nota) for cal in materia_data['calificaciones'] if cal.nota is not None]
         materia_data['promedio'] = round(sum(notas) / len(notas), 2) if notas else 0
 
     context = {
@@ -94,22 +103,20 @@ def mis_calificaciones(request):
 @login_required
 @user_passes_test(is_student)
 def mis_cursos(request):
-    """Ver cursos matriculados"""
+    """Ver cursos matriculados y materias inscritas directamente."""
+    # Cursos a los que está matriculado
     matriculas = Matricula.objects.filter(
         estudiante=request.user
     ).select_related('curso').order_by('-fecha_matricula')
-
-    # Para cada curso, obtener las materias
-    cursos_data = []
-    for matricula in matriculas:
-        materias = matricula.curso.materias.filter(activa=True)
-        cursos_data.append({
-            'matricula': matricula,
-            'materias': materias,
-        })
+    
+    # Materias a las que está inscrito directamente
+    materias_inscritas = InscripcionMateria.objects.filter(
+        estudiante=request.user
+    ).select_related('materia', 'materia__curso').order_by('materia__curso', 'materia__nombre')
 
     context = {
-        'cursos_data': cursos_data,
+        'matriculas': matriculas,
+        'materias_inscritas': materias_inscritas,
     }
     return render(request, 'student/cursos.html', context)
 
@@ -117,7 +124,7 @@ def mis_cursos(request):
 @login_required
 @user_passes_test(is_student)
 def mis_asistencias(request):
-    """Ver registro de asistencias"""
+    """Ver registro de asistencias y estadísticas."""
     asistencias = Asistencia.objects.filter(
         estudiante=request.user
     ).select_related('materia').order_by('-fecha')
@@ -125,9 +132,10 @@ def mis_asistencias(request):
     # Estadísticas
     total = asistencias.count()
     presentes = asistencias.filter(estado='presente').count()
-    ausentes = asistencias.filter(estado='ausente').count()
-    tardanzas = asistencias.filter(estado='tardanza').count()
-    excusados = asistencias.filter(estado='excusado').count()
+    # Las otras cuentas se mantienen, pero solo presentes afecta el porcentaje
+    # ausentes = asistencias.filter(estado='ausente').count()
+    # tardanzas = asistencias.filter(estado='tardanza').count()
+    # excusados = asistencias.filter(estado='excusado').count()
 
     porcentaje_asistencia = (presentes / total * 100) if total > 0 else 0
 
@@ -135,9 +143,9 @@ def mis_asistencias(request):
         'asistencias': asistencias,
         'total': total,
         'presentes': presentes,
-        'ausentes': ausentes,
-        'tardanzas': tardanzas,
-        'excusados': excusados,
+        'ausentes': asistencias.filter(estado='ausente').count(),
+        'tardanzas': asistencias.filter(estado='tardanza').count(),
+        'excusados': asistencias.filter(estado='excusado').count(),
         'porcentaje_asistencia': round(porcentaje_asistencia, 1),
     }
     return render(request, 'student/asistencias.html', context)
@@ -146,8 +154,8 @@ def mis_asistencias(request):
 @login_required
 @user_passes_test(is_student)
 def exportar_calificaciones(request):
-    """Exportar calificaciones a Excel"""
-    # Crear workbook
+    """Exportar calificaciones del estudiante a un archivo Excel."""
+    
     wb = Workbook()
     ws = wb.active
     ws.title = "Mis Calificaciones"
@@ -173,7 +181,7 @@ def exportar_calificaciones(request):
         ws.cell(row=row, column=1, value=cal.materia.nombre)
         ws.cell(row=row, column=2, value=cal.materia.curso.nombre)
         ws.cell(row=row, column=3, value=cal.get_periodo_display())
-        ws.cell(row=row, column=4, value=float(cal.nota))
+        ws.cell(row=row, column=4, value=float(cal.nota) if cal.nota is not None else '') 
         ws.cell(row=row, column=5, value=cal.observaciones)
         ws.cell(row=row, column=6, value=cal.fecha_registro.strftime('%d/%m/%Y'))
 
@@ -198,7 +206,7 @@ def exportar_calificaciones(request):
 @login_required
 @user_passes_test(is_student)
 def marcar_notificacion_leida(request, notificacion_id):
-    """Marcar notificación como leída"""
+    """Marcar notificación específica como leída."""
     notificacion = get_object_or_404(Notificacion, id=notificacion_id, estudiante=request.user)
     notificacion.leida = True
     notificacion.save()
@@ -208,7 +216,7 @@ def marcar_notificacion_leida(request, notificacion_id):
 @login_required
 @user_passes_test(is_student)
 def mis_notificaciones(request):
-    """Ver todas las notificaciones"""
+    """Ver todas las notificaciones del estudiante."""
     notificaciones = Notificacion.objects.filter(
         estudiante=request.user
     ).order_by('-creada_en')
