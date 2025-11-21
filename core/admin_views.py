@@ -285,7 +285,7 @@ def materia_crear(request):
             nombre=nombre,
             codigo=codigo,
             descripcion=descripcion,
-            curso_id=curso_id,
+            curso_id=curso_id if curso_id else None,
             docente_id=docente_id if docente_id else None,
             creditos=creditos,
             activa=activa
